@@ -25,14 +25,9 @@ export async function getTopProcesses(
   const safeLimit = Math.min(Math.max(1, limit), 50);
 
   const sortProperty = sortBy === 'cpu' ? 'CPU' : 'WorkingSet';
-  const script = `
-    $procs = Get-Process | Select-Object Name, Id, CPU, WorkingSet, Responding |
-      Sort-Object ${sortProperty} -Descending |
-      Select-Object -First ${safeLimit}
-    $procs | ConvertTo-Json -Compress
-  `;
+  const cmd = `powershell -NoProfile -Command "Get-Process | Select-Object Name, Id, CPU, WorkingSet, Responding | Sort-Object ${sortProperty} -Descending | Select-Object -First ${safeLimit} | ConvertTo-Json -Compress"`;
 
-  const raw = execSync(`powershell -NoProfile -Command "${script.replace(/\n/g, ' ')}"`, {
+  const raw = execSync(cmd, {
     timeout: 10000,
     encoding: 'utf-8',
   }).trim();
