@@ -26,9 +26,16 @@ Claude calls the right tools, correlates the findings, and gives you a ranked ac
 | `get_network_health` | Read | Ping latency to 8.8.8.8 / 1.1.1.1, active TCP connections, adapter status |
 | `get_startup_items` | Read | Lists all startup programs, flags known heavy apps |
 | `suggest_restarts` | Read | Detects memory bloat per app vs clean-start baseline — tells you exactly how many MB you'd recover |
+| `get_battery_health` | Read | Battery charge, health %, wear level, cycle count, estimated runtime |
+| `get_windows_update_status` | Read | Pending Windows updates, KB numbers, sizes, security flags |
+| `get_event_log_errors` | Read | Recent critical/error/warning events from System & Application logs, grouped by source |
 | `clean_temp_files` | **Action** | Deletes old temp files and browser caches (dry run by default) |
 | `optimize_for_meeting` | **Action** | Closes distracting apps, pauses background updaters, switches to High Performance power plan |
 | `restore_after_meeting` | **Action** | Undoes `optimize_for_meeting` — back to Balanced plan, restarts OneDrive/Search |
+| `kill_process` | **Action** | Kills all instances of a named process (allowlist-gated, no dry run needed — reversible) |
+| `disable_startup_item` | **Action** | Removes a startup program from registry or startup folder (dry run by default) |
+| `set_display_scaling` | **Action** | Sets Windows DPI scaling % — valid values 100/125/150/175/200/225/250/300/350 (dry run by default) |
+| `schedule_maintenance` | **Action** | Creates a daily Task Scheduler job to clean temp files automatically (dry run by default) |
 
 ---
 
@@ -41,6 +48,8 @@ Every action tool has multiple safety layers:
 - **Forbidden list** — `System32`, `Program Files`, `lsass`, `svchost`, `explorer` etc. are hard-blocked regardless of any input
 - **Age threshold** — `clean_temp_files` only touches files older than `max_age_days` (default 7)
 - **Open handle check** — files currently in use by another process are skipped, never force-deleted
+- **`kill_process` allowlist** — only processes explicitly listed in `safeToKillProcesses` can be terminated; OS-critical processes (`lsass`, `svchost`, `explorer`, etc.) are hard-blocked
+- **`disable_startup_item` dry_run** — shows what would be removed and provides an exact undo command before any change
 
 ---
 
@@ -141,9 +150,16 @@ tamash-windows/
 │       ├── get_network_health.ts
 │       ├── get_startup_items.ts
 │       ├── suggest_restarts.ts
+│       ├── get_battery_health.ts
+│       ├── get_windows_update_status.ts
+│       ├── get_event_log_errors.ts
 │       ├── clean_temp_files.ts
 │       ├── optimize_for_meeting.ts
-│       └── restore_after_meeting.ts
+│       ├── restore_after_meeting.ts
+│       ├── kill_process.ts
+│       ├── disable_startup_item.ts
+│       ├── set_display_scaling.ts
+│       └── schedule_maintenance.ts
 ├── safety/
 │   └── allowlist.json               ← Safe paths and processes
 ├── test.ts                          ← Tool smoke tests
