@@ -7,6 +7,13 @@ import { restoreAfterMeeting } from './src/tools/restore_after_meeting';
 import { getNetworkHealth } from './src/tools/get_network_health';
 import { getStartupItems } from './src/tools/get_startup_items';
 import { suggestRestarts } from './src/tools/suggest_restarts';
+import { killProcess } from './src/tools/kill_process';
+import { disableStartupItem } from './src/tools/disable_startup_item';
+import { getBatteryHealth } from './src/tools/get_battery_health';
+import { getWindowsUpdateStatus } from './src/tools/get_windows_update_status';
+import { getEventLogErrors } from './src/tools/get_event_log_errors';
+import { setDisplayScaling } from './src/tools/set_display_scaling';
+import { scheduleMaintenance } from './src/tools/schedule_maintenance';
 
 const SEP = '─'.repeat(60);
 
@@ -142,6 +149,95 @@ async function run() {
       console.log(`  ${s.reason}`);
       console.log(`  → ${s.suggested_action}`);
     });
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 11: kill_process (dry safe test — process not in allowlist)');
+  console.log(SEP);
+  try {
+    const r = await killProcess('nonexistent_safe_test.exe');
+    console.log(`Target   : ${r.target_name}`);
+    console.log(`Found    : ${r.instances_found}`);
+    console.log(`Killed   : ${r.instances_killed}`);
+    console.log(`Skipped  : ${r.instances_skipped}`);
+    console.log(`Summary  : ${r.summary}`);
+    if (r.errors.length) console.log(`Errors   : ${r.errors.join(', ')}`);
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 12: disable_startup_item (dry_run=true, nonexistent item)');
+  console.log(SEP);
+  try {
+    const r = await disableStartupItem('__test_item_that_does_not_exist__', true);
+    console.log(`Found    : ${r.found}`);
+    console.log(`Action   : ${r.action_taken}`);
+    console.log(`Summary  : ${r.summary}`);
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 13: get_battery_health');
+  console.log(SEP);
+  try {
+    const r = await getBatteryHealth();
+    console.log(`Present  : ${r.present}`);
+    if (r.present) {
+      console.log(`Status   : ${r.status}`);
+      console.log(`Charge   : ${r.charge_percent}%`);
+      console.log(`Health   : ${r.health_percent ?? 'N/A'}% (${r.wear_level})`);
+      console.log(`Cycles   : ${r.cycle_count ?? 'N/A'}`);
+      if (r.estimated_hours_remaining !== null)
+        console.log(`Remaining: ~${r.estimated_hours_remaining}h`);
+    }
+    console.log(`Summary  : ${r.summary}`);
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 14: get_windows_update_status');
+  console.log(SEP);
+  try {
+    const r = await getWindowsUpdateStatus();
+    console.log(`Pending  : ${r.pending_count} (${r.security_count} security)`);
+    console.log(`WU svc   : ${r.wu_service_status}`);
+    console.log(`AutoUpdate: ${r.auto_update_enabled}`);
+    console.log(`Summary  : ${r.summary}`);
+    r.updates.slice(0, 3).forEach(u =>
+      console.log(`  ${u.is_security ? '⚠' : '•'} ${u.title.slice(0, 70)} [${u.size_mb ?? '?'} MB]`)
+    );
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 15: get_event_log_errors (last 6h, top 10)');
+  console.log(SEP);
+  try {
+    const r = await getEventLogErrors(6, 10);
+    console.log(`Found    : ${r.total_found} (${r.critical_count} critical, ${r.error_count} errors, ${r.warning_count} warnings)`);
+    console.log(`Summary  : ${r.summary}`);
+    r.top_sources.slice(0, 5).forEach(s =>
+      console.log(`  ${s.highest_level.padEnd(10)} x${s.count}  ${s.source}`)
+    );
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 16: set_display_scaling (dry_run=true, 125%)');
+  console.log(SEP);
+  try {
+    const r = await setDisplayScaling(125, true);
+    console.log(`Current  : ${r.current_scaling_percent ?? '?'}%  (DPI ${r.current_dpi ?? '?'})`);
+    console.log(`Target   : ${r.requested_scaling_percent}%  (DPI ${r.target_dpi})`);
+    console.log(`Action   : ${r.action_taken}`);
+    console.log(`Summary  : ${r.summary}`);
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 17: schedule_maintenance (dry_run=true, 03:00)');
+  console.log(SEP);
+  try {
+    const r = await scheduleMaintenance('03:00', true);
+    console.log(`Task     : ${r.task_name}`);
+    console.log(`Time     : ${r.scheduled_time}`);
+    console.log(`Exists   : ${r.task_exists_already}`);
+    console.log(`Result   : ${r.result}`);
+    console.log(`Summary  : ${r.summary}`);
   } catch (e) { console.error('FAILED:', e); }
 
   console.log(`\n${SEP}`);
