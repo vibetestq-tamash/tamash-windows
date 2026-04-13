@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "description": "Paths and processes that are safe for automated cleanup and optimization actions",
+  "safePaths": {
+    "tempDirectories": [
+      "%TEMP%",
+      "%TMP%",
+      "C:\\Windows\\Temp",
+      "C:\\Windows\\SoftwareDistribution\\Download",
+      "C:\\Windows\\Prefetch",
+      "%LOCALAPPDATA%\\Temp",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\Temporary Internet Files"
+    ],
+    "browserCaches": [
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Cache",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Code Cache",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Cache",
+      "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles"
+    ],
+    "logDirectories": [
+      "C:\\Windows\\Logs",
+      "%LOCALAPPDATA%\\CrashDumps",
+      "%APPDATA%\\Microsoft\\Windows\\Recent"
+    ]
+  },
+  "forbiddenPaths": [
+    "C:\\Windows\\System32",
+    "C:\\Windows\\SysWOW64",
+    "C:\\Program Files",
+    "C:\\Program Files (x86)",
+    "C:\\Users"
+  ],
+  "safeToKillProcesses": [
+    "SearchIndexer.exe",
+    "OneDrive.exe",
+    "Teams.exe",
+    "Spotify.exe",
+    "Discord.exe",
+    "Slack.exe",
+    "steam.exe",
+    "EpicGamesLauncher.exe",
+    "AdobeUpdateService.exe",
+    "GoogleUpdate.exe",
+    "MicrosoftEdgeUpdate.exe"
+  ],
+  "forbiddenProcesses": [
+    "explorer.exe",
+    "lsass.exe",
+    "svchost.exe",
+    "csrss.exe",
+    "winlogon.exe",
+    "services.exe",
+    "smss.exe",
+    "wininit.exe",
+    "System",
+    "ntoskrnl.exe",
+    "dwm.exe",
+    "conhost.exe",
+    "audiodg.exe"
+  ],
+  "maxFileSizeMBToDelete": 500,
+  "minFreeDiskSpaceMBRequired": 1024,
+  "requireConfirmationForFilesOlderThanDays": 7
+}

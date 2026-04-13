@@ -1,0 +1,25 @@
+{
+  "name": "windows-health-mcp",
+  "version": "1.0.0",
+  "description": "Windows system health MCP server for Claude Desktop",
+  "main": "dist/index.js",
+  "bin": {
+    "win-tamash": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": ["mcp", "windows", "health", "claude"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
