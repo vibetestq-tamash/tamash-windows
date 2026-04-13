@@ -8,6 +8,9 @@ import { getTopProcesses } from './tools/get_top_processes.js';
 import { analyzeSlowdown } from './tools/analyze_slowdown.js';
 import { cleanTempFiles } from './tools/clean_temp_files.js';
 import { optimizeForMeeting } from './tools/optimize_for_meeting.js';
+import { restoreAfterMeeting } from './tools/restore_after_meeting.js';
+import { getNetworkHealth } from './tools/get_network_health.js';
+import { getStartupItems } from './tools/get_startup_items.js';
 
 const server = new McpServer({
   name: 'win-tamash',
@@ -115,6 +118,45 @@ server.tool(
   },
   async ({ dry_run, minutes_until_meeting }) => {
     const result = await optimizeForMeeting(dry_run, minutes_until_meeting);
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  }
+);
+
+// ─── Tool: restore_after_meeting ────────────────────────────────────────────
+server.tool(
+  'restore_after_meeting',
+  'Undo the changes made by optimize_for_meeting: switches back to Balanced power plan and restarts background services (OneDrive, Search Indexer) that were paused.',
+  {},
+  async () => {
+    const result = await restoreAfterMeeting();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  }
+);
+
+// ─── Tool: get_network_health ────────────────────────────────────────────────
+server.tool(
+  'get_network_health',
+  'Check internet connectivity and latency by pinging 8.8.8.8 and 1.1.1.1. Reports active TCP connections and network adapter status. Useful before video calls.',
+  {},
+  async () => {
+    const result = await getNetworkHealth();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  }
+);
+
+// ─── Tool: get_startup_items ─────────────────────────────────────────────────
+server.tool(
+  'get_startup_items',
+  'List all programs that launch at Windows startup. Flags known heavy/slow apps. Use this to identify startup bloat detected by analyze_slowdown.',
+  {},
+  async () => {
+    const result = await getStartupItems();
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };

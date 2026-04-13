@@ -1,4 +1,6 @@
 import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as os from 'os';
 
 export interface SlowdownFinding {
@@ -15,6 +17,16 @@ export interface SlowdownAnalysisResult {
   findings: SlowdownFinding[];
   quick_wins: string[];
   estimated_recoverable_ram_mb: number;
+}
+
+function getSafeToKillNames(): string[] {
+  try {
+    const allowlistPath = path.join(__dirname, '..', '..', 'safety', 'allowlist.json');
+    const raw = JSON.parse(fs.readFileSync(allowlistPath, 'utf-8'));
+    return (raw.safeToKillProcesses ?? []).map((p: string) => p.toLowerCase().replace('.exe', ''));
+  } catch {
+    return [];
+  }
 }
 
 function getHighMemProcesses(): Array<{ name: string; memory_mb: number }> {
@@ -170,7 +182,10 @@ export async function analyzeSlowdown(): Promise<SlowdownAnalysisResult> {
       : `Found ${findings.length} minor issue(s). Addressing these will improve responsiveness.`;
 
   const heavyProcs = getHighMemProcesses();
-  const recoverableRam = heavyProcs.reduce((sum, p) => sum + p.memory_mb, 0);
+  const safeToKill = getSafeToKillNames();
+  const recoverableRam = heavyProcs
+    .filter((p) => safeToKill.includes(p.name.toLowerCase()))
+    .reduce((sum, p) => sum + p.memory_mb, 0);
 
   return {
     timestamp: new Date().toISOString(),

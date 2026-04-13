@@ -27,16 +27,31 @@ function expandEnvVars(p: string): string {
   return p.replace(/%([^%]+)%/g, (_, key) => process.env[key] ?? `%${key}%`);
 }
 
-// Resolve safe temp paths from allowlist
+// Resolve safe paths to clean from allowlist (temp dirs + browser caches)
 function getSafeTempPaths(): string[] {
   try {
     const allowlistPath = path.join(__dirname, '..', '..', 'safety', 'allowlist.json');
     const raw = JSON.parse(fs.readFileSync(allowlistPath, 'utf-8'));
-    return (raw.safePaths?.tempDirectories ?? []).map(expandEnvVars);
+    const temp = (raw.safePaths?.tempDirectories ?? []).map(expandEnvVars);
+    const browsers = (raw.safePaths?.browserCaches ?? []).map(expandEnvVars);
+    return [...temp, ...browsers];
   } catch {
-    // Fallback to just %TEMP% if allowlist unreadable
     return [os.tmpdir()];
   }
+}
+
+// Recursively calculate directory size in bytes
+function getTreeSize(dirPath: string): number {
+  let total = 0;
+  try {
+    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+      const full = path.join(dirPath, entry.name);
+      try {
+        total += entry.isDirectory() ? getTreeSize(full) : fs.statSync(full).size;
+      } catch { /* locked/inaccessible file */ }
+    }
+  } catch { /* directory unreadable */ }
+  return total;
 }
 
 function getForbiddenPaths(): string[] {
@@ -93,7 +108,7 @@ function cleanDirectory(
         continue;
       }
 
-      const sizeBytes = entry.isFile() ? stat.size : 0;
+      const sizeBytes = entry.isFile() ? stat.size : entry.isDirectory() ? getTreeSize(fullPath) : 0;
 
       if (!dryRun) {
         if (entry.isDirectory()) {

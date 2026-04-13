@@ -40,9 +40,11 @@ interface UptimeInfo {
 
 function getCpuUsage(): number {
   try {
+    // Two samples 1 second apart gives a real instantaneous CPU reading
+    // (performance counters are rate-based; a single sample is always 0)
     const result = execSync(
-      'powershell -NoProfile -Command "Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select-Object -ExpandProperty Average"',
-      { timeout: 8000, encoding: 'utf-8' }
+      `powershell -NoProfile -Command "(Get-Counter '\\Processor(_Total)\\% Processor Time' -SampleInterval 1 -MaxSamples 2).CounterSamples | Select-Object -Last 1 | Select-Object -ExpandProperty CookedValue"`,
+      { timeout: 12000, encoding: 'utf-8' }
     ).trim();
     return parseFloat(result) || 0;
   } catch {
