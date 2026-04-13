@@ -11,6 +11,7 @@ import { optimizeForMeeting } from './tools/optimize_for_meeting.js';
 import { restoreAfterMeeting } from './tools/restore_after_meeting.js';
 import { getNetworkHealth } from './tools/get_network_health.js';
 import { getStartupItems } from './tools/get_startup_items.js';
+import { suggestRestarts } from './tools/suggest_restarts.js';
 
 const server = new McpServer({
   name: 'win-tamash',
@@ -157,6 +158,19 @@ server.tool(
   {},
   async () => {
     const result = await getStartupItems();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  }
+);
+
+// ─── Tool: suggest_restarts ─────────────────────────────────────────────────
+server.tool(
+  'suggest_restarts',
+  'Checks how long each app has been running and how much memory it has accumulated vs a clean-start baseline. Tells you exactly how many MB you would recover by restarting Chrome, VS Code, Slack, etc. — and asks whether to do it.',
+  {},
+  async () => {
+    const result = await suggestRestarts();
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };

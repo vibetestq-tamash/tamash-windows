@@ -6,6 +6,7 @@ import { optimizeForMeeting } from './src/tools/optimize_for_meeting';
 import { restoreAfterMeeting } from './src/tools/restore_after_meeting';
 import { getNetworkHealth } from './src/tools/get_network_health';
 import { getStartupItems } from './src/tools/get_startup_items';
+import { suggestRestarts } from './src/tools/suggest_restarts';
 
 const SEP = '─'.repeat(60);
 
@@ -126,6 +127,21 @@ async function run() {
     r.items.filter(i => i.is_heavy).forEach(i =>
       console.log(`  ⚠ ${i.name} [${i.location}]`)
     );
+  } catch (e) { console.error('FAILED:', e); }
+
+  console.log(`\n${SEP}`);
+  console.log('TOOL 10: suggest_restarts');
+  console.log(SEP);
+  try {
+    const r = await suggestRestarts();
+    console.log(`Total potential savings: ~${r.total_potential_savings_mb} MB`);
+    console.log(`Summary: ${r.summary}`);
+    r.suggestions.forEach(s => {
+      console.log(`\n  [${s.severity.toUpperCase()}] ${s.app}  x${s.instance_count}  running ${s.oldest_running_hours}h`);
+      console.log(`  Now: ${s.current_memory_mb} MB → After restart: ~${s.estimated_clean_memory_mb} MB → Save: ~${s.estimated_savings_mb} MB`);
+      console.log(`  ${s.reason}`);
+      console.log(`  → ${s.suggested_action}`);
+    });
   } catch (e) { console.error('FAILED:', e); }
 
   console.log(`\n${SEP}`);
