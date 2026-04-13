@@ -76,6 +76,7 @@ async function run() {
     console.log(`Dirs scanned : ${r.directories_scanned}`);
     console.log(`Files found  : ${r.files_found}`);
     console.log(`Would delete : ${r.files_deleted} file(s)`);
+    console.log(`Locked/skip  : ${r.files_locked_skipped} file(s) — in use by another process`);
     console.log(`Would free   : ${r.space_freed_mb} MB`);
     console.log(`Summary      : ${r.summary}`);
     if (r.errors.length) console.log(`Errors: ${r.errors.join(', ')}`);
